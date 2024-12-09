@@ -189,3 +189,56 @@ def by_num_cnot_old(metadata: Metadata) -> qiskit.QuantumCircuit:
             op = operation['operation'](*angles)
             qc.append(op, register_operands)
     return qc
+
+##############################################################################################
+################################### ADDITIONAL RX RY RZ ######################################
+##############################################################################################
+
+def by_num_rotations(metadata: MetadataSynthesis) -> qiskit.QuantumCircuit:
+    """
+    Create a quantum circuit with a limited number of R_x, R_y, R_z gates.
+
+    Args:
+        metadata (MetadataSynthesis): Metadata including num_qubits, depth, num_rx, num_ry, num_rz.
+
+    Returns:
+        qiskit.QuantumCircuit: Generated quantum circuit with limited R_x, R_y, R_z gates.
+    """
+    pool = constant.operations_with_rotations 
+    num_qubits = metadata.num_qubits
+    depth = metadata.depth
+    num_rx = metadata.num_rx
+    num_ry = metadata.num_ry
+    num_rz = metadata.num_rz
+    total_rotations = num_rx + num_ry + num_rz
+    num_other_gates = depth * num_qubits - total_rotations
+
+    if total_rotations > depth * num_qubits:
+        raise ValueError("Total rotation gates exceed the maximum possible gates in the circuit.")
+
+    rotation_counts = [num_rx, num_ry, num_rz]
+    rotation_gate_count = {"RX": rotation_counts[0], "RY": rotation_counts[1], "RZ": rotation_counts[2]}
+
+    qc = qiskit.QuantumCircuit(num_qubits)
+    full_pool = []
+
+    for gate_type, count in rotation_gate_count.items():
+        gate = getattr(qiskit.circuit.library, gate_type + "_Gate")
+        full_pool.extend([{"operation": gate, "num_op": 1, "num_params": 1}] * count)
+
+    other_gate_pool = [gate for gate in pool if gate['operation'] not in ['RX', 'RY', 'RZ']]
+    for _ in range(num_other_gates):
+        full_pool.append(random.choice(other_gate_pool))
+
+    random.shuffle(full_pool)
+
+    while full_pool:
+        remaining_qubits = list(range(num_qubits))
+        random.shuffle(remaining_qubits)
+        while len(remaining_qubits) > 0:
+            gate_info = full_pool.pop()
+            if gate_info['num_op'] > len(remaining_qubits):
+                break
+            operands = remaining_qubits[:gate_info['num_op']]
+            qc.append(gate_info['operation'](), operands)
+    return qc
