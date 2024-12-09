@@ -56,7 +56,7 @@ class EEnvironment():
 
     def __init__(self, metadata: Metadata | dict,
                  fitness_func: typing.List[types.FunctionType] = [],
-                 generator_func: types.FunctionType = None,
+                 generator_func: types.FunctionType = generator.by_num_rotations,
                  crossover_func: types.FunctionType = crossover.onepoint_crossover,
                  mutate_func: types.FunctionType = mutate.bitflip_mutate,
                  selection_func: types.FunctionType = selection.elitist_selection,

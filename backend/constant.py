@@ -234,6 +234,14 @@ operations = [
     CRZ_gate
 ]
 
+operations_with_rotations = [
+    H_gate,
+    RX_gate,
+    RY_gate,
+    RZ_gate,
+    CX_gate,
+]
+
 operations_only_cnot = [
     H_gate,
     RX_gate,
